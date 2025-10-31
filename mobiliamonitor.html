@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Aplicaciones</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 250px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .app-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+            word-break: break-word;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online {
+            background: #48bb78;
+            box-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
+        }
+
+        .status-offline {
+            background: #f56565;
+            box-shadow: 0 0 10px rgba(245, 101, 101, 0.5);
+        }
+
+        .status-checking {
+            background: #ed8936;
+            box-shadow: 0 0 10px rgba(237, 137, 54, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .app-url {
+            color: #718096;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+
+        .app-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            font-weight: 600;
+        }
+
+        .status-text.online {
+            color: #48bb78;
+        }
+
+        .status-text.offline {
+            color: #f56565;
+        }
+
+        .status-text.checking {
+            color: #ed8936;
+        }
+
+        .last-check {
+            font-size: 0.85em;
+            color: #a0aec0;
+            margin-top: 5px;
+        }
+
+        .app-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+        }
+
+        .empty-state h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .auto-refresh label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        select {
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .email-config {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 5px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .email-config h3 {
+            margin-bottom: 10px;
+            color: #2d3748;
+            font-size: 1em;
+        }
+
+        .email-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #f56565;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .app-header {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monitor de Mobilia</h1>
+        
+        <div class="apps-grid" id="appsGrid">
+            <div class="empty-state">
+                <h2>No hay aplicaciones configuradas</h2>
+                <p>Agrega tu primera aplicación usando el formulario de arriba</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Aplicaciones predefinidas
+        const defaultApps = [
+            {
+                id: 1,
+                name: 'Acrecer',
+                url: 'https://acrecer.mbp.com.co/acrecer-mobilia',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            },
+            {
+                id: 2,
+                name: 'Alberto Alvarez',
+                url: 'https://albertoalvarez.mbp.com.co/mobilia-alberto',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            },
+            {
+                id: 3,
+                name: 'Bien Raiz',
+                url: 'https://bienraiz.mbp.com.co/bienraiz-mobilia',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            },
+            {
+                id: 4,
+                name: 'MyPlaces',
+                url: 'https://myplaces.mbp.com.co/mobilia-myplaces',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            },
+            {
+                id: 5,
+                name: 'Viva',
+                url: 'https://vivainmobiliaria.mbp.com.co/mobilia-viva',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            },
+            {
+                id: 6,
+                name: 'Vista',
+                url: 'https://vistaproperties.mbp.com.co/mobilia-vista',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            },
+            {
+                id: 7,
+                name: 'Hopen',
+                url: 'https://hopen.mbp.com.co/mobilia-hopen',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            },
+            {
+                id: 8,
+                name: 'Test',
+                url: 'https://test.mbp.com.co/mobilia-test',
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            }
+        ];
+
+        let apps = [];
+        let autoRefreshInterval = null;
+        let emailConfig = {
+            enabled: false,
+            recipient: '',
+            apiKey: '',
+            notifiedApps: {} 
+        };
+
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('monitorApps');
+            if (saved) {
+                apps = JSON.parse(saved);
+            } else {
+                apps = [...defaultApps];
+                saveApps();
+            }
+            
+            const savedEmailConfig = localStorage.getItem('emailConfig');
+            if (savedEmailConfig) {
+                emailConfig = JSON.parse(savedEmailConfig);
+                document.getElementById('emailEnabled').checked = emailConfig.enabled;
+                document.getElementById('emailRecipient').value = emailConfig.recipient || '';
+                document.getElementById('emailApiKey').value = emailConfig.apiKey || '';
+            }
+            
+            renderApps();
+            checkAllApps();
+        });
+
+        function addApp() {
+            const name = document.getElementById('appName').value.trim();
+            const url = document.getElementById('appUrl').value.trim();
+
+            if (!name || !url) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('La URL debe comenzar con http:// o https://');
+                return;
+            }
+
+            apps.push({
+                id: Date.now(),
+                name: name,
+                url: url,
+                status: 'checking',
+                lastCheck: null,
+                responseTime: null
+            });
+
+            saveApps();
+            renderApps();
+            checkApp(apps.length - 1);
+
+            document.getElementById('appName').value = '';
+            document.getElementById('appUrl').value = '';
+        }
+
+        function removeApp(id) {
+            if (confirm('¿Estás seguro de eliminar esta aplicación?')) {
+                apps = apps.filter(app => app.id !== id);
+                saveApps();
+                renderApps();
+            }
+        }
+
+        async function checkApp(index) {
+            const app = apps[index];
+            const previousStatus = app.status;
+            app.status = 'checking';
+            renderApps();
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch(app.url, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+
+                const responseTime = Date.now() - startTime;
+                app.status = 'online';
+                app.responseTime = responseTime;
+                app.lastCheck = new Date().toLocaleString('es-CO');
+                
+                // Si vuelve a estar online, limpiar notificación
+                if (previousStatus === 'offline' && emailConfig.notifiedApps[app.id]) {
+                    delete emailConfig.notifiedApps[app.id];
+                    saveEmailConfig();
+                    sendEmailNotification(app, 'recovery');
+                }
+            } catch (error) {
+                app.status = 'offline';
+                app.responseTime = null;
+                app.lastCheck = new Date().toLocaleString('es-CO');
+                
+                // Enviar notificación solo si es la primera vez que cae
+                if (previousStatus !== 'offline' && emailConfig.enabled && !emailConfig.notifiedApps[app.id]) {
+                    emailConfig.notifiedApps[app.id] = true;
+                    saveEmailConfig();
+                    sendEmailNotification(app, 'down');
+                }
+            }
+
+            saveApps();
+            renderApps();
+        }
+
+        function checkAllApps() {
+            apps.forEach((app, index) => {
+                checkApp(index);
+            });
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('appsGrid');
+
+            if (apps.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No hay aplicaciones configuradas</h2>
+                        <p>Agrega tu primera aplicación usando el formulario de arriba</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = apps.map(app => `
+                <div class="app-card">
+                    <div class="app-header">
+                        <div class="app-name">${app.name}</div>
+                        <div class="status-indicator status-${app.status}"></div>
+                    </div>
+                    <div class="app-url">${app.url}</div>
+                    <div class="app-status">
+                        <span class="status-text ${app.status}">
+                            ${app.status === 'online' ? '✓ En línea' : 
+                              app.status === 'offline' ? '✗ Caída' : 
+                              '⟳ Verificando...'}
+                        </span>
+                        ${app.responseTime ? `<span>${app.responseTime}ms</span>` : ''}
+                    </div>
+                    ${app.lastCheck ? `<div class="last-check">Última verificación: ${app.lastCheck}</div>` : ''}
+                    <div class="app-actions">
+                        <button class="btn-secondary btn-small" onclick="checkApp(${apps.indexOf(app)})">
+                            Verificar
+                        </button>
+                        <button class="btn-danger btn-small" onclick="removeApp(${app.id})">
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveApps() {
+            localStorage.setItem('monitorApps', JSON.stringify(apps));
+        }
+
+        function saveEmailConfig() {
+            localStorage.setItem('emailConfig', JSON.stringify(emailConfig));
+        }
+
+        function toggleEmailNotifications() {
+            emailConfig.enabled = document.getElementById('emailEnabled').checked;
+            saveEmailConfig();
+        }
+
+        function saveEmailConfigFromInputs() {
+            emailConfig.enabled = document.getElementById('emailEnabled').checked;
+            emailConfig.recipient = document.getElementById('emailRecipient').value.trim();
+            emailConfig.apiKey = document.getElementById('emailApiKey').value.trim();
+            
+            if (emailConfig.enabled && !emailConfig.recipient) {
+                alert('Por favor ingresa un correo electrónico');
+                document.getElementById('emailEnabled').checked = false;
+                emailConfig.enabled = false;
+                return;
+            }
+            
+            saveEmailConfig();
+            alert('Configuración guardada correctamente');
+        }
+
+        async function sendEmailNotification(app, type) {
+            if (!emailConfig.enabled || !emailConfig.recipient) {
+                return;
+            }
+
+            const subject = type === 'down' 
+                ? `🔴 ALERTA: ${app.name} está CAÍDA` 
+                : `🟢 RECUPERACIÓN: ${app.name} está de vuelta`;
+            
+            const message = type === 'down'
+                ? `La aplicación "${app.name}" ha dejado de responder.\n\nURL: ${app.url}\nHora: ${app.lastCheck}\n\nPor favor verifica el estado del servidor.`
+                : `La aplicación "${app.name}" se ha recuperado y está funcionando normalmente.\n\nURL: ${app.url}\nHora: ${app.lastCheck}`;
+
+            // Opción 1: Usar EmailJS (requiere configuración)
+            if (emailConfig.apiKey) {
+                try {
+                    // Aquí irían las credenciales de EmailJS
+                    console.log('📧 Email enviado (simulado):', {
+                        to: emailConfig.recipient,
+                        subject: subject,
+                        message: message
+                    });
+                    
+                    // Ejemplo de integración con EmailJS:
+                    // emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+                    //     to_email: emailConfig.recipient,
+                    //     subject: subject,
+                    //     message: message,
+                    //     app_name: app.name,
+                    //     app_url: app.url
+                    // });
+                } catch (error) {
+                    console.error('Error enviando email:', error);
+                }
+            } else {
+                // Opción 2: Abrir cliente de correo del usuario
+                const mailtoLink = `mailto:${emailConfig.recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+                console.log('📧 Abriendo cliente de correo:', mailtoLink);
+                
+                // Mostrar notificación en pantalla también
+                showNotification(app, type);
+            }
+        }
+
+        function showNotification(app, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 20px;
+                background: ${type === 'down' ? '#f56565' : '#48bb78'};
+                color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                max-width: 400px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <strong>${type === 'down' ? '🔴 Aplicación Caída' : '🟢 Aplicación Recuperada'}</strong><br>
+                ${app.name}<br>
+                <small>${app.url}</small>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Agregar estilos para animaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Renombrar función para evitar confusión
+        function saveEmailConfig() {
+            saveEmailConfigFromInputs();
+        }
+
+        function toggleAutoRefresh() {
+            const enabled = document.getElementById('autoRefresh').checked;
+            
+            if (enabled) {
+                const interval = parseInt(document.getElementById('refreshInterval').value) * 1000;
+                autoRefreshInterval = setInterval(checkAllApps, interval);
+                checkAllApps();
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
